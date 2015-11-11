@@ -1,0 +1,225 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resourceppc.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#include "resdefce.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BATT100             BITMAP                  "bitmap1.bmp"
+IDB_BATT75              BITMAP                  "bmp00001.bmp"
+IDB_BATT50              BITMAP                  "bitmap2.bmp"
+IDB_BATT25              BITMAP                  "bmp00002.bmp"
+IDB_BATT0               BITMAP                  "bmp00003.bmp"
+IDB_BATTCHARGING        BITMAP                  "bmp00004.bmp"
+IDB_BAT100              BITMAP                  "bmp00005.bmp"
+IDB_BAT075              BITMAP                  "bmp00006.bmp"
+IDB_BAT050              BITMAP                  "bmp00007.bmp"
+IDB_BATCHARGING         BITMAP                  "bmp00008.bmp"
+IDB_BAT000              BITMAP                  "bmp00009.bmp"
+IDB_BAT025              BITMAP                  "bmp000_025.bmp"
+IDB_WIFI100             BITMAP                  "bmp00010.bmp"
+IDB_WIFI075             BITMAP                  "wifi101.bmp"
+IDB_WIFI050             BITMAP                  "wifi76.bmp"
+IDB_WIFI025             BITMAP                  "bmp00011.bmp"
+IDB_WIFI000             BITMAP                  "bmp00012.bmp"
+IDB_REWEWWS             BITMAP                  "bmp00013.bmp"
+IDB_SHOWSIP             BITMAP                  "bmp00014.bmp"
+IDB_HOME                BITMAP                  "bmp00015.bmp"
+#endif    // German (Germany) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_RDMADDONRW          ICON                    "RDMaddonRW.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU MENU 
+BEGIN
+    POPUP "Help"
+    BEGIN
+        MENUITEM "About",                       IDM_HELP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDC_RDMADDONRW ACCELERATORS 
+BEGIN
+    "A",            IDM_HELP_ABOUT,         VIRTKEY, CONTROL, NOINVERT
+    "Q",            IDM_OK,                 VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOG  0, 0, 156, 129
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+EXSTYLE 0x80000000L
+CAPTION "About RDMaddonRW"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDI_RDMADDONRW,IDC_STATIC_1,12,12,21,20,SS_REALSIZEIMAGE
+    LTEXT           "RDMaddonRW Version 1.0",IDC_STATIC_2,12,36,70,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2015",IDC_STATIC_3,12,48,66,8
+END
+
+IDD_ABOUTBOX_WIDE DIALOG  0, 0, 210, 129
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+EXSTYLE 0x80000000L
+CAPTION "About RDMaddonRW"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDI_RDMADDONRW,IDC_STATIC_1,12,12,21,20,SS_REALSIZEIMAGE
+    LTEXT           "RDMaddonRW Version 1.0",IDC_STATIC_2,48,12,66,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2015",IDC_STATIC_3,48,24,66,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 149
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 122
+    END
+
+    IDD_ABOUTBOX_WIDE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 203
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 122
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resourceppc.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#include ""resdefce.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""RDMaddonRWppc.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_APP_TITLE           "RDMaddonRW"
+    IDC_RDMADDONRW          "RDMADDONRW"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_OK                  "OK"
+    IDS_HELP                "HELP"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#include "RDMaddonRWppc.rc2"  // non-Microsoft Visual C++ edited resources
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
