@@ -1,0 +1,1 @@
+copy ".\Windows Mobile 6.5.3 Professional DTK (ARMV4I)\Debug\RDMinjectDLL.dll" ..\binary\

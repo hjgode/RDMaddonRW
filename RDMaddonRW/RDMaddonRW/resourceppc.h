@@ -10,12 +10,6 @@
 #define IDS_HELP                        104
 #define IDD_ABOUTBOX                    105
 #define IDD_ABOUTBOX_WIDE               106
-#define IDB_BATT100                     129
-#define IDB_BATT75                      130
-#define IDB_BATT50                      131
-#define IDB_BATT25                      132
-#define IDB_BATT0                       133
-#define IDB_BATTCHARGING                134
 #define IDB_BAT100                      135
 #define IDB_BAT075                      136
 #define IDB_BAT050                      137
@@ -29,7 +23,6 @@
 #define IDB_WIFI000                     145
 #define IDB_REWEWWS                     146
 #define IDB_SHOWSIP                     147
-#define IDB_BITMAP1                     148
 #define IDB_HOME                        148
 #define IDC_STATIC_1                    201
 #define IDC_STATIC_2                    202

@@ -2,6 +2,7 @@
 //
 #include "stdafx.h"
 #include "RDMaddonRW.h"
+#include "childwins.h"
 
 //#define MYDEBUG
 
@@ -47,14 +48,21 @@ HBITMAP hWifi025=NULL;
 HBITMAP hWifi000=NULL;
 int wifiPosX=130;
 
+BOOL _bSipShow=FALSE;
+
 void SipShowHide(BOOL bShow) 
 {
 	// TODO: Add your control notification handler code here
-   if ( bShow )
-      if(!SipShowIM(SIPF_ON))
-		  DEBUGMSG(1, (L"SipShowIM failed: %i\n", GetLastError()));
-   else
-      SipShowIM(SIPF_OFF);
+	if ( bShow ){
+		if(!SipShowIM(SIPF_ON)){
+			DEBUGMSG(1, (L"SipShowIM failed: %i\n", GetLastError()));
+		}
+	}
+	else{
+		if(!SipShowIM(SIPF_OFF)){
+			DEBUGMSG(1, (L"SipShowIM failed: %i\n", GetLastError()));
+		}
+	}
 }
 
 int getPercentRSSI(int iRSSI){
@@ -66,14 +74,17 @@ int getPercentRSSI(int iRSSI){
 
 int _rssilevel=-30;
 int _rssiValue=0;
+
 int getRSSILevel(){
+
 #ifdef MYDEBUG
-	int iRSSI=getPercentRSSI(_rssilevel);
-	_rssilevel-=25/1.4;
 	if(_rssilevel<-100)
 		_rssilevel=-30;
-	return iRSSI;
+	_rssilevel-=10;
+	DEBUGMSG(1, (L"MYDEBUG: _rssilevel=%i\n", _rssilevel));
+	return _rssilevel;
 #endif
+
 	int iLevel = -100;
 	if(h802lib == NULL)
 		h802lib = LoadLibrary(_T("80211api.dll"));
@@ -115,9 +126,50 @@ int getBatteryLevel(){
 		return pwrStatus.BatteryLifePercent;
 }
 
+//a thread that watches for TSSHELLWND and terminates this app, if TSSHELLWND not found
+HANDLE hWatchThread=NULL;
+DWORD dwWatchThreadID=0;
+BOOL bStopNow=FALSE;
+DWORD watchThread(LPVOID lParam){
+	DEBUGMSG(1, (L"watchThread started...\n"));
+	HWND hWnd=(HWND)lParam;
+	do{
+		Sleep(5000);
+	}while(FindWindow(L"TSSHELLWND", NULL)!=NULL && !bStopNow);
+	PostMessage(hWnd, WM_QUIT, -3, NULL);
+	DEBUGMSG(1, (L"...watchThread ended\n"));
+	return 0;
+}
+
+int runProcess(TCHAR* szFullName, TCHAR* args){
+	STARTUPINFO startInfo;
+	memset(&startInfo, 0, sizeof(STARTUPINFO));
+	PROCESS_INFORMATION processInformation;
+	DWORD exitCode=0;
+
+	if(CreateProcess(szFullName, args, NULL, NULL, FALSE, 0, NULL, NULL, &startInfo, &processInformation)!=0){
+		// Successfully created the process.  Wait for it to finish.
+		DEBUGMSG(1, (L"Process '%s' started.\n", szFullName));
+
+		// Close the handles.
+		CloseHandle( processInformation.hProcess );
+		CloseHandle( processInformation.hThread );
+		return 0;
+ 	}
+	else{
+		//error
+		DWORD dwErr=GetLastError();
+		DEBUGMSG(1, (L"CreateProcess for '%s' failed with error code=%i\n", szFullName, dwErr));
+		return -1;
+	}
+}
+
+//############################### WINDOW STUF #########################################
+
 // Global Variables:
 HINSTANCE			g_hInst;			// current instance
 HWND				g_hWndMenuBar;		// menu bar handle
+HWND hWndRDM;
 
 // Forward declarations of functions included in this code module:
 ATOM			MyRegisterClass(HINSTANCE, LPTSTR);
@@ -242,14 +294,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 //    hWnd = CreateWindow(szWindowClass, szTitle, WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInstance, NULL);
 
-	HWND hWndTS = FindWindow(L"TSSHELLWND", NULL);
+	hWndRDM = FindWindow(L"TSSHELLWND", NULL);
 #ifndef MYDEBUG
-	if(hWndTS==NULL){
+	if(hWndRDM==NULL){
 		DEBUGMSG(1, (L"### TSSHELLWND not found. EXIT. ###\n"));
 		return FALSE;
 	}
 #else
-		hWndTS=GetForegroundWindow();
+		hWndRDM=GetForegroundWindow();
 		DEBUGMSG(1, (L"### using foregroundwindow ###\n"));
 #endif
 
@@ -259,6 +311,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	screenX = GetSystemMetrics(SM_CXSCREEN);
 	screenY = GetSystemMetrics(SM_CYSCREEN);
 	DWORD dwX, dwY, dwW, dwH;
+
+	//resize and move RDM window
+	RECT rectTS;
+	//HWND hChildWin=FindChildWindowByParent(hWndRDM, L"UIMainClass");
+	//GetWindowRect(hChildWin, &rectTS);
+	GetWindowRect(hWndRDM, &rectTS);
+	LONG lStyleTS = GetWindowLong(hWndRDM, GWL_STYLE);
+	LONG lExStyleTS = GetWindowLong(hWndRDM, GWL_EXSTYLE);
+	SetWindowLong(hWndRDM, GWL_STYLE, lStyleTS | WS_POPUP | WS_VISIBLE);
+	SetWindowPos(hWndRDM, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER);
+	
+	//SetWindowPos(hChildWin, HWND_TOPMOST, rectTS.left, rectTS.top , rectTS.right, rectTS.bottom-FLOATHEIGHT, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+	//SetWindowPos(hWndRDM, HWND_TOPMOST, rectTS.left, rectTS.top , rectTS.right, rectTS.bottom-FLOATHEIGHT, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+	//MoveWindow(hWndRDM, rectTS.left, rectTS.top, rectTS.right, rectTS.bottom-FLOATHEIGHT, TRUE);
+	//UpdateWindow(hWndRDM);
 
 	//size and position
 	dwX=0;
@@ -279,7 +346,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		dwY, 
 		dwW, 
 		dwH, 
-		hWndTS, // NULL, 
+		hWndRDM, // NULL, 
 		NULL, 
 		hInstance, 
 		NULL);
@@ -319,6 +386,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     HDC hdc;
 	RECT rect;
 	static RECT rectSIPbitmap;
+	static RECT rectHomeButton;
 
     static SHACTIVATEINFO s_sai;
 	
@@ -350,13 +418,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			_BattLevel=getBatteryLevel();
 			_WifiLevel=getPercentRSSI(getRSSILevel());
 
+			hWatchThread = CreateThread(NULL, 0, watchThread, (LPVOID) hWnd, 0, &dwWatchThreadID);
+			if(hWatchThread)
+				DEBUGMSG(1, (L"Thread created\n"));
+			else
+				DEBUGMSG(1, (L"Thread create FAILED\n"));
             break;
 		case WM_TIMER:
 			if(wParam==dwTimerID){
-#ifndef MYDEBUG
-				if(FindWindow(L"TSSHELLWND", NULL)==NULL)
-					PostQuitMessage(-2);
-#endif
+//#ifndef MYDEBUG
+//				if(FindWindow(L"TSSHELLWND", NULL)==NULL)
+//					PostQuitMessage(-2);
+//#endif
 				_BattLevel = getBatteryLevel();
 				DEBUGMSG(1, (L"getBatteryLevel=%i\n", _BattLevel));
 
@@ -368,15 +441,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		case WM_LBUTTONUP:
-			int xPos, yPos;
+			int xPos, yPos; HWND hWndLauncher; RECT rectLauncher;
 			xPos = LOWORD(lParam); // horizontal position of cursor
 			yPos = HIWORD(lParam); // vertical position of cursor
-			if(	xPos>rectSIPbitmap.left && yPos>0 && xPos<rectSIPbitmap.right && yPos<rectSIPbitmap.bottom){
+			//toggle
+			_bSipShow=!_bSipShow;
+			//left is absolute and right is width, top is absolute and bottom is height
+			if(	xPos>rectSIPbitmap.left && yPos>0 && xPos<rectSIPbitmap.right+rectSIPbitmap.left && yPos<rectSIPbitmap.bottom){
 				DEBUGMSG(1, (L"SIP hit\n"));
-				SipShowHide(TRUE);
+				SipShowHide(_bSipShow);
 			}else{
 				DEBUGMSG(1, (L"SIP not hit\n"));
 			}
+			if(xPos>rectHomeButton.left && yPos>0 && xPos<rectHomeButton.left+rectHomeButton.right && yPos<rectHomeButton.bottom){
+				DEBUGMSG(1, (L"HOME hit\n"));
+				//close RDM (minimize)
+				PostMessage(hWndRDM, WM_CLOSE, 0, 0);
+				//show Launcher
+				hWndLauncher=FindWindow(NULL, L"Launcher");
+				ShowWindow(hWndLauncher, SW_MAXIMIZE);
+			}else{
+				DEBUGMSG(1, (L"HOME not hit\n"));
+			}
+
 			break;
         case WM_PAINT:
 			BITMAP 			bitmap;
@@ -459,6 +546,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			GetObject(hHome, sizeof(bitmap), &bitmap);
 			posX=posX-bitmap.bmWidth;
 			BitBlt(hdc, posX, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
+			rectHomeButton.left=posX; rectHomeButton.top=0; rectHomeButton.right=bitmap.bmWidth; rectHomeButton.bottom=bitmap.bmHeight;
 
 			//### ReweWWS
 			oldBitmap=SelectObject(hdcMem, hReweWWS);
@@ -475,6 +563,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_DESTROY:
             CommandBar_Destroy(g_hWndMenuBar);
             PostQuitMessage(0);
+			bStopNow=TRUE;
+			Sleep(5000);
             break;
 
         case WM_ACTIVATE:

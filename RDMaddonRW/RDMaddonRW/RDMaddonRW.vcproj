@@ -92,6 +92,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(InputDir)..\..\binary\$(TargetFileName)&quot;&#x0D;&#x0A;"
 			/>
 			<DeploymentTool
 				ForceDirty="-1"
@@ -200,6 +201,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\childwins.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\RDMaddonRW.cpp"
 				>
 			</File>
@@ -230,6 +235,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\childwins.h"
+				>
+			</File>
+			<File
 				RelativePath=".\RDMaddonRW.h"
 				>
 			</File>
@@ -248,75 +257,59 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\bitmap1.bmp"
+				RelativePath=".\IDB_BAT000.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bitmap2.bmp"
+				RelativePath=".\IDB_BAT025.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bmp00001.bmp"
+				RelativePath=".\IDB_BAT050.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bmp00002.bmp"
+				RelativePath=".\IDB_BAT075.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bmp00003.bmp"
+				RelativePath=".\IDB_BAT100.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bmp00004.bmp"
+				RelativePath=".\IDB_BATCHARGING.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bmp00005.bmp"
+				RelativePath=".\IDB_HOME.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bmp00006.bmp"
+				RelativePath=".\IDB_REWEWWS.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bmp00007.bmp"
+				RelativePath=".\IDB_SHOWSIP.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bmp00008.bmp"
+				RelativePath=".\IDB_WIFI000.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bmp00009.bmp"
+				RelativePath=".\IDB_WIFI025.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bmp00010.bmp"
+				RelativePath=".\IDB_WIFI050.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bmp00011.bmp"
+				RelativePath=".\IDB_WIFI075.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\bmp00012.bmp"
-				>
-			</File>
-			<File
-				RelativePath=".\bmp00013.bmp"
-				>
-			</File>
-			<File
-				RelativePath=".\bmp00014.bmp"
-				>
-			</File>
-			<File
-				RelativePath=".\bmp00015.bmp"
-				>
-			</File>
-			<File
-				RelativePath=".\bmp000_025.bmp"
+				RelativePath=".\IDB_WIFI100.bmp"
 				>
 			</File>
 			<File
@@ -329,14 +322,6 @@
 			</File>
 			<File
 				RelativePath=".\RDMaddonRWppc.rc2"
-				>
-			</File>
-			<File
-				RelativePath=".\wifi101.bmp"
-				>
-			</File>
-			<File
-				RelativePath=".\wifi76.bmp"
 				>
 			</File>
 		</Filter>
