@@ -12,11 +12,15 @@ StartRDMinject.exe will just write or remove the registry key value of "HKLM\Sys
 
 After a restart injectDLL watches all process. If wpctsc.exe (Remote Desktop Mobile) is started, the process RDMaddonRW.exe is started.
 
-RDMaddonRW.exe adds a small bar on top of the RDM window at the bottom. 
+RDMaddonRW.exe adds a small bar on top of the RDM window at the bottom.
+
+A simple clock
+
+The clock is shown at the most right of the bar (new in v0.2)
 
 Keypad symbol
 
-The bar shows a keypad to show/hide the Software Input Panel at the most right. 
+The bar shows a keypad to show/hide the Software Input Panel at the right. 
 
 Battery percentage
 
@@ -29,3 +33,15 @@ The WiFi RSSI symbol shows the WiFi RSSI (-30 to -100) as a percentage (4 steps)
 The Home symbol
 
 Clicking the home symbol closes RDM and shows the Intermec Launcher screen.
+
+# history
+
+v0.1:
+  first official release
+v0.2:
+  add a clock to the right of all symbols
+  the clock is painted every second, the other symbols are re-drawn all 10 seconds
+  there is a switch in stdafx.h defining the RSSI function to use: USE_RSSI_ITC
+    if set, the Intermec getRSSI() Api is used, this loads a bunch of other DLLs on every call and therefor was banned
+    if unset, standard MS API calls to NDIS SNMP are used to get the RSSI of the first network adapter
+    

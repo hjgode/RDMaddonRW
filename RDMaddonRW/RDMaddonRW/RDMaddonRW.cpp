@@ -3,15 +3,9 @@
 #include "stdafx.h"
 #include "RDMaddonRW.h"
 #include "childwins.h"
+#include "rssi_itc.h"
 
 //#define MYDEBUG
-
-//get WLAN RSSI
-typedef UINT (*PFN_GetRSSI)(int*);
-PFN_GetRSSI GetRSSI=NULL;
-
-// The loadlibrary HINSTANCE destination
-HINSTANCE h802lib=NULL;
 
 #define MAX_LOADSTRING 100
 
@@ -50,6 +44,37 @@ int wifiPosX=130;
 
 BOOL _bSipShow=FALSE;
 
+//get additinal extent of font
+SIZE getTextSizeExtent(HWND hwnd, TCHAR* fontName, int FontSize, TCHAR* text){
+	HDC hdc=GetDC(hwnd);
+	PLOGFONT plf;
+	HFONT hfnt, hfntPrev;
+	plf = (PLOGFONT) LocalAlloc(LPTR, sizeof(LOGFONT));
+	// Specify a font typeface name and weight.
+	lstrcpy(plf->lfFaceName, fontName);
+	plf->lfHeight = -((FontSize * GetDeviceCaps(hdc, LOGPIXELSY)) / 72);//12;
+	plf->lfWeight = FW_BOLD;
+    plf->lfEscapement = 90*10;
+	plf->lfOrientation = 90*10;
+	plf->lfPitchAndFamily=FIXED_PITCH;
+	SetTextAlign(hdc, TA_BASELINE);
+	hfnt = CreateFontIndirect(plf);
+	hfntPrev = (HFONT)SelectObject(hdc, hfnt);
+	SIZE textSize;
+	//calc textbox
+	GetTextExtentPoint32(hdc, text, wcslen(text), &textSize); 
+	
+	TEXTMETRIC tm;
+	GetTextMetrics(hdc, &tm);
+	
+	textSize.cy-= tm.tmDescent;
+
+	SelectObject(hdc, hfntPrev);
+	DeleteObject(hfnt);
+	ReleaseDC(hwnd,hdc);
+	return textSize;
+}
+
 void SipShowHide(BOOL bShow) 
 {
 	// TODO: Add your control notification handler code here
@@ -63,49 +88,6 @@ void SipShowHide(BOOL bShow)
 			DEBUGMSG(1, (L"SipShowIM failed: %i\n", GetLastError()));
 		}
 	}
-}
-
-int getPercentRSSI(int iRSSI){
-	//iRSSI = -30 to -100
-	int iRet=iRSSI+100;
-	iRet=(int)(iRet*1.4);
-	return iRet;
-}
-
-int _rssilevel=-30;
-int _rssiValue=0;
-
-int getRSSILevel(){
-
-#ifdef MYDEBUG
-	if(_rssilevel<-100)
-		_rssilevel=-30;
-	_rssilevel-=10;
-	DEBUGMSG(1, (L"MYDEBUG: _rssilevel=%i\n", _rssilevel));
-	return _rssilevel;
-#endif
-
-	int iLevel = -100;
-	if(h802lib == NULL)
-		h802lib = LoadLibrary(_T("80211api.dll"));
-	
-	if(GetRSSI==NULL)
-		GetRSSI = (PFN_GetRSSI)GetProcAddress(h802lib, _T("GetRSSI")); // Range is -100 dBm to -30 dBm
-	if(GetRSSI!=NULL)
-	{
-		int iRes=0;
-		if( (iRes=GetRSSI(&iLevel)) == 0 ){
-			DEBUGMSG(1, (L"GetRSSI =%i\n", iLevel)); // -30 to -100
-		}
-		else{
-			DEBUGMSG(1, (L"GetRSSI error=%i\n", iRes)); //ie ERR_CONNECT_FAILED
-			return -100;
-		}
-	}
-	else{
-		DEBUGMSG(1, (L"Could not load GetRSSI: error %i \n", GetLastError()));
-	}
-	return iLevel;
 }
 
 int _level=100;
@@ -131,13 +113,18 @@ HANDLE hWatchThread=NULL;
 DWORD dwWatchThreadID=0;
 BOOL bStopNow=FALSE;
 DWORD watchThread(LPVOID lParam){
-	DEBUGMSG(1, (L"watchThread started...\n"));
 	HWND hWnd=(HWND)lParam;
+	DEBUGMSG(1, (L"watchThread started for hWnd=0x%08x...\n", hWnd));
 	do{
 		Sleep(5000);
 	}while(FindWindow(L"TSSHELLWND", NULL)!=NULL && !bStopNow);
-	PostMessage(hWnd, WM_QUIT, -3, NULL);
+	PostMessage(hWnd, WM_CLOSE, -3, NULL);
 	DEBUGMSG(1, (L"...watchThread ended\n"));
+	//DWORD dwProcID; HANDLE hProc;
+	//if(GetWindowThreadProcessId(hWnd, &dwProcID)){
+	//	if ( (hProc=OpenProcess(SYNCHRONIZE, FALSE, dwProcID))!=INVALID_HANDLE_VALUE )
+	//		TerminateProcess(hProc, -3);
+	//}
 	return 0;
 }
 
@@ -389,7 +376,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static RECT rectHomeButton;
 
     static SHACTIVATEINFO s_sai;
-	
+	static BOOL bToggle;
+	static int iUpdateCount=0;
+
     switch (message) 
     {
         case WM_COMMAND:
@@ -413,14 +402,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             memset(&s_sai, 0, sizeof (s_sai));
             s_sai.cbSize = sizeof (s_sai);
 
-			hTimer=SetTimer(hWnd, dwTimerID, 10000, NULL);
+			hTimer=SetTimer(hWnd, dwTimerID, 1000, NULL);
 			
 			_BattLevel=getBatteryLevel();
 			_WifiLevel=getPercentRSSI(getRSSILevel());
 
 			hWatchThread = CreateThread(NULL, 0, watchThread, (LPVOID) hWnd, 0, &dwWatchThreadID);
 			if(hWatchThread)
-				DEBUGMSG(1, (L"Thread created\n"));
+				DEBUGMSG(1, (L"Thread created for hWnd=0x%08x\n", hWnd));
 			else
 				DEBUGMSG(1, (L"Thread create FAILED\n"));
             break;
@@ -437,7 +426,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				DEBUGMSG(1, (L"getPercentRSSI=%i\n", _WifiLevel));
 
 				GetClientRect(hWnd, &rect);
-				InvalidateRect(hWnd, &rect, TRUE);
+				InvalidateRect(hWnd, &rect, FALSE);
 			}
 			break;
 		case WM_LBUTTONUP:
@@ -472,95 +461,125 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			HDC 			hdcMem;
 			HGDIOBJ 		oldBitmap;
 			int posX;
+			TCHAR myText[6]; RECT myRect; SYSTEMTIME myLocalTime; TEXTMETRIC tm;
 
 			hdc = BeginPaint(hWnd, &ps);
             
     		hdcMem = CreateCompatibleDC(hdc);
 
             // TODO: Add any drawing code here...
-			//### Keypad
-			oldBitmap=SelectObject(hdcMem, hShowSip);
-			GetObject(hShowSip, sizeof(bitmap), &bitmap);
-			posX=screenX-bitmap.bmWidth;
-			BitBlt(hdc, posX, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
-			rectSIPbitmap.top=0; rectSIPbitmap.left=posX; rectSIPbitmap.bottom=bitmap.bmHeight; rectSIPbitmap.right=posX+bitmap.bmWidth;
 
-			//### BATTERY STUFF ###
-			if(_BattLevel==1000){
-				oldBitmap = SelectObject(hdcMem, hBattCharging);
-				hBitmapBatt=hBattCharging;
-			}
-			else if(_BattLevel>75){
-				oldBitmap = SelectObject(hdcMem, hBatt100);
-				hBitmapBatt=hBatt100;
-			}
-			else if(_BattLevel>50){
-				oldBitmap = SelectObject(hdcMem, hBatt75);
-				hBitmapBatt=hBatt75;
-			}
-			else if(_BattLevel>25){
-				oldBitmap = SelectObject(hdcMem, hBatt50);
-				hBitmapBatt=hBatt50;
-			}
-			else if(_BattLevel>12){
-				oldBitmap = SelectObject(hdcMem, hBatt25);
-				hBitmapBatt=hBatt25;
-			}
-			else {
-				oldBitmap = SelectObject(hdcMem, hBatt0);
-				hBitmapBatt=hBatt0;
-			}
-			GetObject(hBatt100, sizeof(bitmap), &bitmap);
-			posX=posX-bitmap.bmWidth;
-			BitBlt(hdc, posX, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
-			//### BATTERY STUFF END ###
-			
-			//### WIFI stuff
-			if(_WifiLevel>75){
-				oldBitmap = SelectObject(hdcMem, hWifi100);
-				hBitmapWifi=hWifi100;
-			}
-			else if(_WifiLevel>50){
-				oldBitmap = SelectObject(hdcMem, hWifi075);
-				hBitmapWifi=hWifi075;
-			}
-			else if(_WifiLevel>25){
-				oldBitmap = SelectObject(hdcMem, hWifi050);
-				hBitmapWifi=hWifi050;
-			}
-			else if(_WifiLevel>12){
-				oldBitmap = SelectObject(hdcMem, hWifi025);
-				hBitmapWifi=hWifi025;
-			}
-			else {
-				oldBitmap = SelectObject(hdcMem, hWifi000);
-				hBitmapWifi=hWifi000;
-			}
-			GetObject(hWifi100, sizeof(bitmap), &bitmap);
-			posX=posX-bitmap.bmWidth;
-			BitBlt(hdc, posX, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
-			//### WIFI STUFF END ###
+			//the clock display
+			GetLocalTime(&myLocalTime);
+			if(bToggle)
+				wsprintf(myText, L"%02i:%02i", myLocalTime.wHour, myLocalTime.wMinute);
+			else
+				wsprintf(myText, L"%02i %02i", myLocalTime.wHour, myLocalTime.wMinute);
+			bToggle=!bToggle;
+			//calc text rectangle needed
+			GetTextMetrics(hdc, &tm); 
+			myRect.right=screenX;// - 5*tm.tmAveCharWidth;
+			myRect.left =screenX - 5*tm.tmAveCharWidth;
+			myRect.top=0;
+			myRect.bottom=FLOATHEIGHT;
+			posX=screenX-myRect.left;
 
-			//### HOME
-			oldBitmap=SelectObject(hdcMem, hHome);
-			GetObject(hHome, sizeof(bitmap), &bitmap);
-			posX=posX-bitmap.bmWidth;
-			BitBlt(hdc, posX, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
-			rectHomeButton.left=posX; rectHomeButton.top=0; rectHomeButton.right=bitmap.bmWidth; rectHomeButton.bottom=bitmap.bmHeight;
+			SetBkColor(hdc, RGB(0,0,0));
+			SetTextColor(hdc, RGB(160,160,160));
+			DrawText(hdc,myText,wcslen(myText), &myRect, DT_CENTER | DT_VCENTER);
 
-			//### ReweWWS
-			oldBitmap=SelectObject(hdcMem, hReweWWS);
-			GetObject(hReweWWS, sizeof(bitmap), &bitmap);
-			//posX=posX-bitmap.bmWidth; 
-			BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY); //left most position
-			
-			SelectObject(hdcMem, oldBitmap);
+			//update the more static symbols only every tenth call
+			if(iUpdateCount==0){
+				//### Keypad
+				oldBitmap=SelectObject(hdcMem, hShowSip);
+				GetObject(hShowSip, sizeof(bitmap), &bitmap);
+				posX=screenX - posX - bitmap.bmWidth;
+
+				BitBlt(hdc, posX, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
+				rectSIPbitmap.top=0; rectSIPbitmap.left=posX; rectSIPbitmap.bottom=bitmap.bmHeight; rectSIPbitmap.right=posX+bitmap.bmWidth;
+
+				//### BATTERY STUFF ###
+				if(_BattLevel==1000){
+					oldBitmap = SelectObject(hdcMem, hBattCharging);
+					hBitmapBatt=hBattCharging;
+				}
+				else if(_BattLevel>75){
+					oldBitmap = SelectObject(hdcMem, hBatt100);
+					hBitmapBatt=hBatt100;
+				}
+				else if(_BattLevel>50){
+					oldBitmap = SelectObject(hdcMem, hBatt75);
+					hBitmapBatt=hBatt75;
+				}
+				else if(_BattLevel>25){
+					oldBitmap = SelectObject(hdcMem, hBatt50);
+					hBitmapBatt=hBatt50;
+				}
+				else if(_BattLevel>12){
+					oldBitmap = SelectObject(hdcMem, hBatt25);
+					hBitmapBatt=hBatt25;
+				}
+				else {
+					oldBitmap = SelectObject(hdcMem, hBatt0);
+					hBitmapBatt=hBatt0;
+				}
+				GetObject(hBatt100, sizeof(bitmap), &bitmap);
+				posX=posX-bitmap.bmWidth;
+				BitBlt(hdc, posX, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
+				//### BATTERY STUFF END ###
+				
+				//### WIFI stuff
+				if(_WifiLevel>75){
+					oldBitmap = SelectObject(hdcMem, hWifi100);
+					hBitmapWifi=hWifi100;
+				}
+				else if(_WifiLevel>50){
+					oldBitmap = SelectObject(hdcMem, hWifi075);
+					hBitmapWifi=hWifi075;
+				}
+				else if(_WifiLevel>25){
+					oldBitmap = SelectObject(hdcMem, hWifi050);
+					hBitmapWifi=hWifi050;
+				}
+				else if(_WifiLevel>12){
+					oldBitmap = SelectObject(hdcMem, hWifi025);
+					hBitmapWifi=hWifi025;
+				}
+				else {
+					oldBitmap = SelectObject(hdcMem, hWifi000);
+					hBitmapWifi=hWifi000;
+				}
+				GetObject(hWifi100, sizeof(bitmap), &bitmap);
+				posX=posX-bitmap.bmWidth;
+				BitBlt(hdc, posX, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
+				//### WIFI STUFF END ###
+
+				//### HOME
+				oldBitmap=SelectObject(hdcMem, hHome);
+				GetObject(hHome, sizeof(bitmap), &bitmap);
+				posX=posX-bitmap.bmWidth;
+				BitBlt(hdc, posX, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
+				rectHomeButton.left=posX; rectHomeButton.top=0; rectHomeButton.right=bitmap.bmWidth; rectHomeButton.bottom=bitmap.bmHeight;
+
+				//### ReweWWS
+				oldBitmap=SelectObject(hdcMem, hReweWWS);
+				GetObject(hReweWWS, sizeof(bitmap), &bitmap);
+				//posX=posX-bitmap.bmWidth; 
+				BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY); //left most position
+				
+				SelectObject(hdcMem, oldBitmap);
+			}
+			iUpdateCount++;
+			if(iUpdateCount==10)
+				iUpdateCount=0;
 
 			DeleteDC(hdcMem);
 
             EndPaint(hWnd, &ps);
             break;
+		case WM_CLOSE:
         case WM_DESTROY:
+			DEBUGMSG(1, (L"WM_DESTROY received\n"));
             CommandBar_Destroy(g_hWndMenuBar);
             PostQuitMessage(0);
 			bStopNow=TRUE;

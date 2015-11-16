@@ -60,3 +60,4 @@
 #include <altcecrt.h>
 
 // TODO: reference additional headers your program requires here
+//#define USE_RSSI_ITC	//activate to use ITC get_RSSI()

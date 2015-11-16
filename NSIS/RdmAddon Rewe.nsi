@@ -2,9 +2,9 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "RdmAddon Rewe"
-!define PRODUCT_VERSION "0.1"
+!define PRODUCT_VERSION "0.2"
 !define PRODUCT_PUBLISHER "HSM"
-!define PRODUCT_WEB_SITE "http://www.honeywell.com"
+!define PRODUCT_WEB_SITE "http://www.honeywellaidc.com"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\RDMaddonRW.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
@@ -21,7 +21,7 @@
 !insertmacro MUI_PAGE_WELCOME
 ; License page
 !define MUI_LICENSEPAGE_CHECKBOX
-!insertmacro MUI_PAGE_LICENSE "D:\svn\git\RDMaddonRW\setup\HSM EULA.txt"
+!insertmacro MUI_PAGE_LICENSE "D:\svn\git\RDMaddonRW\binary\HSM EULA.txt"
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
 ; Instfiles page
@@ -39,8 +39,8 @@
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "Setup.exe"
-InstallDir "$PROGRAMFILES\RdmAddon Rewe"
+OutFile "RdmAddonRW_v02_Setup.exe"
+InstallDir "$PROGRAMFILES\Honeywell\RdmAddon Rewe"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show
@@ -48,17 +48,19 @@ ShowUnInstDetails show
 Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
-  File "D:\svn\git\RDMaddonRW\setup\README.txt"
   CreateDirectory "$INSTDIR"
-  CreateShortCut "$STARTMENU.lnk" "$INSTDIR\README.txt"
-  File "D:\svn\git\RDMaddonRW\setup\RDMaddonRW.exe"
-  File "D:\svn\git\RDMaddonRW\setup\RDMinjectDLL.dll"
-  File "D:\svn\git\RDMaddonRW\setup\StartRDMinject.exe"
+  File "D:\svn\git\RDMaddonRW\binary\README.txt"
+  File "D:\svn\git\RDMaddonRW\binary\RDMaddonRW.exe"
+  File "D:\svn\git\RDMaddonRW\binary\RDMinjectDLL.dll"
+  File "D:\svn\git\RDMaddonRW\binary\StartRDMinject.exe"
+  File "D:\svn\git\RDMaddonRW\binary\HSM EULA.txt"
 SectionEnd
 
 Section -AdditionalIcons
   CreateDirectory "$SMPROGRAMS\Honeywell\RdmAddon Rewe"
   CreateShortCut "$SMPROGRAMS\Honeywell\RdmAddon Rewe\Uninstall.lnk" "$INSTDIR\uninst.exe"
+  CreateShortCut "$SMPROGRAMS\Honeywell\RdmAddon Rewe\README.lnk" "$INSTDIR\README.txt"
+  CreateShortCut "$SMPROGRAMS\Honeywell\RdmAddon Rewe\Files.lnk" "$INSTDIR"
 SectionEnd
 
 Section -Post
@@ -89,10 +91,12 @@ Section Uninstall
   Delete "$INSTDIR\RDMinjectDLL.dll"
   Delete "$INSTDIR\RDMaddonRW.exe"
   Delete "$INSTDIR\README.txt"
+  Delete "$INSTDIR\HSM EULA.txt"
 
   Delete "$SMPROGRAMS\Honeywell\RdmAddon Rewe\Uninstall.lnk"
-  Delete "$STARTMENU.lnk"
-
+  Delete "$SMPROGRAMS\Honeywell\RdmAddon Rewe\README.lnk"
+  Delete "$SMPROGRAMS\Honeywell\RdmAddon Rewe\Files.lnk"
+  
   RMDir "$SMPROGRAMS\Honeywell\RdmAddon Rewe"
   RMDir "$INSTDIR"
   RMDir ""

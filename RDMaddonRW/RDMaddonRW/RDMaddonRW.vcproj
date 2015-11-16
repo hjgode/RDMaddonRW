@@ -45,7 +45,7 @@
 				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);WINCE;DEBUG;_WINDOWS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE;POCKETPC2003_UI_MODEL"
 				MinimalRebuild="true"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -209,6 +209,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rssi_generic.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\rssi_itc.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -227,6 +235,10 @@
 						UsePrecompiledHeader="1"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\WifiPeek.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
@@ -247,7 +259,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rssi_generic.h"
+				>
+			</File>
+			<File
+				RelativePath=".\rssi_itc.h"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WifiPeek.h"
 				>
 			</File>
 		</Filter>
